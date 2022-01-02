@@ -23,7 +23,7 @@ from tensorflow.keras.utils import to_categorical
 
 
 # def load_data()
-def load_data(dataset_dir, img_size=(8, 9, 8), number_of_inputs=1, features_type='multi', num_classes=2, frames_per_subject=4800, seed=7):
+def load_data(dataset_dir, short_names, img_size=(8, 9, 8), number_of_inputs=1, features_type='multi', num_classes=2, frames_per_subject=4800, seed=7):
     
     img_rows, img_cols, num_chan = img_size
     
@@ -34,10 +34,10 @@ def load_data(dataset_dir, img_size=(8, 9, 8), number_of_inputs=1, features_type
     
     # all_acc = [] # используешься ли ты где-нибудь?
     
-    short_names = ['01', '02', '03', '04', '05', '06', '07', '08', 
-                  '09', '10', '11', '12', '13', '14', '15', '16', 
-                  '17', '18', '19', '20', '21', '22', '23', '24',
-                  '25', '26', '27', '28', '29', '30', '31', '32']
+    # short_names = ['01', '02', '03', '04', '05', '06', '07', '08', 
+    #               '09', '10', '11', '12', '13', '14', '15', '16', 
+    #               '17', '18', '19', '20', '21', '22', '23', '24',
+    #               '25', '26', '27', '28', '29', '30', '31', '32']
     
     samples_number_per_subject = int(frames_per_subject / number_of_inputs) # tested only for [1...6] range
     samples_numbers_list = list(range(samples_number_per_subject))

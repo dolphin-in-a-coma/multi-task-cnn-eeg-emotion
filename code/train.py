@@ -12,10 +12,10 @@ from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint, Early
 from utils import ReduceLRBacktrack, get_sample_weights
 from model import create_MT_CNN
 
-# ЗАМЕНИТЬ dataset_dir на model_dir
+# ЗАМЕНИТЬ model_dir на model_dir
 
-def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id, short_names, dropout_rate=.2, number_of_inputs=1, dataset_dir='.', model_name='MT_CNN', img_size=(8, 9, 8), lr_decay_factor=0.5, lr_decay_patience=5, epochs_n=200, seed=7, verbose=0):
-    model_checkpoint_path_SD = f'{dataset_dir}/{model_name}-for-test.hdf5'
+def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id, short_names, dropout_rate=.2, number_of_inputs=1, model_dir='.', model_name='MT_CNN', img_size=(8, 9, 8), lr_decay_factor=0.5, lr_decay_patience=5, epochs_n=200, seed=7, verbose=0):
+    model_checkpoint_path_SD = f'{model_dir}/{model_name}-for-test.hdf5'
     # нужно ли использовать - хз
     lrate_silent = lambda: ReduceLRBacktrack(best_path=model_checkpoint_path_SD, monitor='val_loss', patience=lr_decay_patience, factor=lr_decay_factor, verbose=verbose)
     lrate = lambda model_checkpoint_path: ReduceLROnPlateau(best_path=model_checkpoint_path, monitor="val_loss", patience=5, factor=0.5, verbose=1)
@@ -49,9 +49,9 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id, short
         K.clear_session()
         #img_rows, img_cols, num_chan = img_size
         
-        model_checkpoint_path_SI_unique = f'{dataset_dir}/{model_name}-weight_AV-fold{fold+1:02d}' +\
+        model_checkpoint_path_SI_unique = f'{model_dir}/{model_name}-weight_AV-fold{fold+1:02d}' +\
         '-epoch{epoch:02d}-loss{val_loss:.2f}-A_accuracy{val_out_a_accuracy:.4f}-V_accuracy{val_out_v_accuracy:.4f}.hdf5'
-        model_checkpoint_path_SI_for_load = f'{dataset_dir}/{model_name}-weight_AV-fold{fold+1:02d}.hdf5'
+        model_checkpoint_path_SI_for_load = f'{model_dir}/{model_name}-weight_AV-fold{fold+1:02d}.hdf5'
     
         model = create_MT_CNN(img_size, dropout_rate, number_of_inputs) # regression=regression)
     
@@ -315,18 +315,18 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id, short
     
         scores_subject_dependent_list_before.append(scores_subject_dependent_per_fold_before)
     
-        with open(dataset_dir + f'{model_name}_scores_SI.pkl', 'wb') as fl:
+        with open(model_dir + f'{model_name}_scores_SI.pkl', 'wb') as fl:
           pickle.dump(scores_subject_independent_list, fl)
     
-        with open(dataset_dir + f'{model_name}_scores_SD_before.pkl', 'wb') as fl:
+        with open(model_dir + f'{model_name}_scores_SD_before.pkl', 'wb') as fl:
           pickle.dump(scores_subject_dependent_list_before, fl)
                 
     
-        with open(dataset_dir + f'{model_name}_valence_scores_SD.pkl', 'wb') as fl:
+        with open(model_dir + f'{model_name}_valence_scores_SD.pkl', 'wb') as fl:
           pickle.dump(valence_scores_subject_dependent_list, fl)
     
-        with open(dataset_dir + f'{model_name}_arousal_scores_SD.pkl', 'wb') as fl:
+        with open(model_dir + f'{model_name}_arousal_scores_SD.pkl', 'wb') as fl:
           pickle.dump(arousal_scores_subject_dependent_list, fl)
     
-        with open(dataset_dir + f'{model_name}_multi_scores_SD.pkl', 'wb') as fl:
+        with open(model_dir + f'{model_name}_multi_scores_SD.pkl', 'wb') as fl:
           pickle.dump(multi_scores_subject_dependent_list, fl)
