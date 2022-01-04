@@ -1,7 +1,7 @@
 import pickle
 from shutil import copyfile
 
-import np
+import numpy as np
 from sklearn.model_selection import StratifiedKFold
 
 import tensorflow as tf
