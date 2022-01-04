@@ -9,8 +9,8 @@ import keras
 from keras import backend as K
 from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint, EarlyStopping
 
-from utils import ReduceLRBacktrack, get_sample_weights
-from model import create_MT_CNN
+from eegemotion.utils import ReduceLRBacktrack, get_sample_weights
+from eegemotion.model import create_MT_CNN
 
 # ЗАМЕНИТЬ model_dir на model_dir
 
