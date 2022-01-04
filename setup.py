@@ -4,8 +4,8 @@ import pkg_resources
 from setuptools import setup, find_packages
 
 setup(
-    name="mt_cnn_eeg",
-    py_modules=["mt_cnn_eeg"],
+    name="eegemotion",
+    py_modules=["eegemotion"],
     version="1.0",
     description="",
     author="Rudakov Evgenii",
