@@ -31,7 +31,7 @@ if __name__ == '__main__':
     img_size = (img_rows, img_cols, num_chan)
     
     y_a_all_subject, y_v_all_subject, x_all_subject, all_subject_id =\
-        load_data(dataset_dir, short_namesi, img_size, number_of_inputs, features_type, num_classes, frames_per_subject, seed)
+        load_data(dataset_dir, short_names, img_size, number_of_inputs, features_type, num_classes, frames_per_subject, seed)
 
     train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id, short_names,
           dropout_rate, number_of_inputs, model_dir, model_name, img_size, lr_decay_factor,
