@@ -1,3 +1,4 @@
+import os
 import pickle
 from shutil import copyfile
 
@@ -248,17 +249,17 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
     
         scores_subject_dependent_list_before.append(scores_subject_dependent_per_fold_before)
     
-        with open(model_dir + f'{model_name}_scores_SI.pkl', 'wb') as fl:
+        with open(os.path.join(model_dir + f'{model_name}_scores_SI.pkl'), 'wb') as fl:
           pickle.dump(scores_subject_independent_list, fl)
     
-        with open(model_dir + f'{model_name}_scores_SD_before.pkl', 'wb') as fl:
+        with open(os.path.join(model_dir + f'{model_name}_scores_SD_before.pkl'), 'wb') as fl:
           pickle.dump(scores_subject_dependent_list_before, fl)
     
-        with open(model_dir + f'{model_name}_valence_scores_SD.pkl', 'wb') as fl:
+        with open(os.path.join(model_dir + f'{model_name}_valence_scores_SD.pkl'), 'wb') as fl:
           pickle.dump(valence_scores_subject_dependent_list, fl)
     
-        with open(model_dir + f'{model_name}_arousal_scores_SD.pkl', 'wb') as fl:
+        with open(os.path.join(model_dir + f'{model_name}_arousal_scores_SD.pkl'), 'wb') as fl:
           pickle.dump(arousal_scores_subject_dependent_list, fl)
     
-        with open(model_dir + f'{model_name}_multi_scores_SD.pkl', 'wb') as fl:
+        with open(os.path.join(model_dir + f'{model_name}_multi_scores_SD.pkl'), 'wb') as fl:
           pickle.dump(multi_scores_subject_dependent_list, fl)

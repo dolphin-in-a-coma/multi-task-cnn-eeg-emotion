@@ -46,7 +46,6 @@ def load_data(dataset_dir, short_names, img_size=(8, 9, 8), number_of_inputs=1, 
     for i, short_name in enumerate(short_names):
         random.shuffle(samples_numbers_list)
         # удолить # print("\nprocessing: ", short_name[i], "......")
-        # удолить .dat??
         file_path = os.path.join(dataset_dir, prefixs[0]+short_name)
         file = sio.loadmat(file_path)
         data = file['data']
@@ -57,7 +56,6 @@ def load_data(dataset_dir, short_names, img_size=(8, 9, 8), number_of_inputs=1, 
     
         if len(prefixs) > 0:
           for prefix in prefixs[1:]:
-            # удолить .dat??
             file_path = os.path.join(dataset_dir, prefix+short_name)
             file = sio.loadmat(file_path)
             data = np.concatenate([data, file['data']], axis=1)
