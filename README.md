@@ -30,6 +30,16 @@ Nevertheless, our model cannot be used for subject-independent emotion recogniti
 
 
 ## Data preprocessing
+The script is working with *.mat files which were processed in the specific way from raw DEAP dataset. My data processing method is mostly based on the method which was decribed in [this repository](https://github.com/shark-in-a-coma/4D-CRNN/tree/master/DEAP). There are two *.py scripts which is needed to be run to transfer DEAP data (Tab _Preprocessed data in Matlab format (2.9GB)_ on the [DEAP website](https://www.eecs.qmul.ac.uk/mmv/datasets/deap/download.html)) into approriate format. 
 
+**Generating DE (diferential entopy) files**
 
-## Training 
+You need to run DEAP_1D.py script at first from the aboce mentioned repository, then DEAP_1D_3D.py.
+
+**Generating PSD (power spectral density) files**
+
+To make the training script run you need to collect all the resulted PSD_{i}.mat (32 files for DEAP dataset) and 32 DE_{i}.mat (the same number) files in the dataset dir and specify its path as a parameter. 
+
+## Training and testing 
+
+All the training steps are demonstrated in [Colab Notebook](https://colab.research.google.com/github/dolphin-in-a-coma/multi-task-cnn-eeg-emotion/blob/main/Training.ipynb)
