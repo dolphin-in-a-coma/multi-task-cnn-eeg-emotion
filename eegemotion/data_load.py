@@ -17,7 +17,7 @@ def load_data(dataset_dir, short_names, img_size=(8, 9, 8), number_of_inputs=1, 
     
     if features_type == 'DE': prefixs = prefixs[:1]
     elif features_type == 'PSD': prefixs = prefixs[1:]
-    elif features_type == 'multi': raise NotImplementedError()
+    elif features_type != 'multi': raise NotImplementedError()
     # all_acc = [] # используешься ли ты где-нибудь?
     
     # short_names = ['01', '02', '03', '04', '05', '06', '07', '08', 
