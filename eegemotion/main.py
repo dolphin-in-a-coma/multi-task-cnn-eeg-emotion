@@ -4,7 +4,8 @@ from eegemotion.train import train
 
 # specify dataset and model dirs
 dataset_dir = '.' # path of the folder with PSD_s and DE_s files
-model_dir = '.' # path where the model and metrics will be stored 
+model_dir = '.' # path where the model and metrics will be stored
+metrics_dir = '.' # path to the folder were all metrics will be stored 
 
 
 img_size = img_rows, img_cols, num_chan = 8, 9, 8 # matrix shape of input data
@@ -22,20 +23,18 @@ lr_decay_patience=5 # how many epochs without prgress before lr_decay
 epochs_n=200 # maximum number of epochs
 verbose=0 # 0, 1 or 2
 
-# НЕ ХВАТАЕТ MULTI_TASK и файн-тюн
-# и еще чего-то не хватает
+task = 'multi' # 'valence', 'arousal' or 'multi'
+fine_tuning = True # fine tune to all subjects specifically
 
-short_names = ('01', '02', '03', '04', '05', '06', '07', '08', 
-              '09', '10', '11', '12', '13', '14', '15', '16', 
-              '17', '18', '19', '20', '21', '22', '23', '24',
-              '25', '26', '27', '28', '29', '30', '31', '32') # наверное нужно поменять
+subject_n = 32 # наверное нужно поменять
 
 
 y_a_all_subject, y_v_all_subject, x_all_subject, all_subject_id =\
-    load_data(dataset_dir, short_names, img_size, number_of_inputs, features_type, num_classes, frames_per_subject, seed)
+    load_data(dataset_dir, subject_n, img_size, number_of_inputs, features_type,
+              num_classes, frames_per_subject, seed)
     
-train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id, short_names,
-      dropout_rate, number_of_inputs, model_dir, model_name, img_size, lr_decay_factor,
-      lr_decay_patience, epochs_n, seed, verbose)
+train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id, subject_n,
+      dropout_rate, number_of_inputs, model_dir, metrics_dir, model_name, img_size,
+      lr_decay_factor, lr_decay_patience, epochs_n, seed, verbose, task, fine_tuning)
 
 # какая-то залупа с памятью

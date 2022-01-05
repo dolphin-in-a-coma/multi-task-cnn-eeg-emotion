@@ -9,7 +9,8 @@ from tensorflow.keras.utils import to_categorical
 # features = "multi" or "DE" or "PSD"
 #img_rows, img_cols, num_chan = 8, 9, 8
 
-def load_data(dataset_dir, short_names, img_size=(8, 9, 8), number_of_inputs=1, features_type='multi', num_classes=2, frames_per_subject=4800, seed=7):
+def load_data(dataset_dir, subject_n=32, img_size=(8, 9, 8), number_of_inputs=1,
+              features_type='multi', num_classes=2, frames_per_subject=4800, seed=7):
     
     img_rows, img_cols, num_chan = img_size
     
@@ -19,11 +20,6 @@ def load_data(dataset_dir, short_names, img_size=(8, 9, 8), number_of_inputs=1, 
     elif features_type == 'PSD': prefixs = prefixs[1:]
     elif features_type != 'multi': raise NotImplementedError()
     # all_acc = [] # используешься ли ты где-нибудь?
-    
-    # short_names = ['01', '02', '03', '04', '05', '06', '07', '08', 
-    #               '09', '10', '11', '12', '13', '14', '15', '16', 
-    #               '17', '18', '19', '20', '21', '22', '23', '24',
-    #               '25', '26', '27', '28', '29', '30', '31', '32']
     
     samples_number_per_subject = int(frames_per_subject / number_of_inputs) # tested only for [1...6] range
     samples_numbers_list = list(range(samples_number_per_subject))
@@ -43,7 +39,8 @@ def load_data(dataset_dir, short_names, img_size=(8, 9, 8), number_of_inputs=1, 
     subject_id_list = []
     
     
-    for i, short_name in enumerate(short_names):
+    for i in range(subject_n):
+        short_name = f'{i+1:02}'
         random.shuffle(samples_numbers_list)
         # удолить # print("\nprocessing: ", short_name[i], "......")
         file_path = os.path.join(dataset_dir, prefixs[0]+short_name)

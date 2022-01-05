@@ -16,9 +16,10 @@ from eegemotion.model import create_MT_CNN
 # TODO добавить веса для лосов
 
 def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id, 
-          short_names, dropout_rate=.2, number_of_inputs=1, model_dir='.', # metrics_dir
+          subject_n=32, dropout_rate=.2, number_of_inputs=1, model_dir='.', metrics_dir='.',
           model_name='MT_CNN', img_size=(8, 9, 8), lr_decay_factor=0.5, 
-          lr_decay_patience=5, epochs_n=200, seed=7, verbose=0):
+          lr_decay_patience=5, epochs_n=200, seed=7, verbose=0, task='multi',
+          fine_tuning=True):
 
     model_checkpoint_path_SD = f'{model_dir}/{model_name}-for-test.hdf5'
 
@@ -30,9 +31,10 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
     lrate = lambda model_checkpoint_path: ReduceLROnPlateau(best_path=model_checkpoint_path,
                                             monitor="val_loss", patience=5,
                                             factor=0.5, verbose=1)
-
+    
+    # исправить потом!!!!
     es = lambda: EarlyStopping(monitor='val_loss', mode='min',
-                               verbose=1, patience=16)
+                               verbose=1, patience=1)
 
     save_model_for_test = lambda: ModelCheckpoint(
                           model_checkpoint_path_SD,
@@ -46,12 +48,7 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
                  mode='min')
 
     scores_subject_independent_list = []
-    multi_scores_subject_dependent_list = []
-    valence_scores_subject_dependent_list = []
-    arousal_scores_subject_dependent_list = []
-    scores_subject_dependent_list_before = []
-    
-    
+
     np.random.seed(seed)
     kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
     for fold, (train, test) in enumerate(kfold.split(x_all_subject, y_a_all_subject.argmax(1))):
@@ -103,163 +100,168 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
         scores_subject_independent_list.append(scores)
         
         
-        # fine-tuning to the specific subject, наверное можно без этого y
-        # только добавил
-        multi_scores_subject_dependent_per_fold = []
-        valence_scores_subject_dependent_per_fold = []
-        arousal_scores_subject_dependent_per_fold = []
-        scores_subject_dependent_per_fold_before = []
+        if fine_tuning:
+            multi_scores_subject_dependent_list = []
+            valence_scores_subject_dependent_list = []
+            arousal_scores_subject_dependent_list = []
+            scores_subject_dependent_list_before = []
             
-        for i, short_name in enumerate(short_names):
-            K.clear_session()
-            print("\nprocessing: ", short_name, "......")
+            multi_scores_subject_dependent_per_fold = []
+            valence_scores_subject_dependent_per_fold = []
+            arousal_scores_subject_dependent_per_fold = []
+            scores_subject_dependent_per_fold_before = []
+                
+            for i in range(subject_n):
+                short_name = f'{i+1:02}'
+                K.clear_session()
+                print("\nprocessing: ", short_name, "......")
+        
+                model = create_MT_CNN(img_size, dropout_rate, number_of_inputs)      
+                
+                model.compile(loss=[keras.losses.categorical_crossentropy, keras.losses.categorical_crossentropy],
+                              optimizer=tf.keras.optimizers.Adam(learning_rate=0.001/8),
+                              metrics=['accuracy'])
+                
+                model.load_weights(model_checkpoint_path_SI_for_load)
+                
+                # Fit the model
+                x_train_for_subject = x_train[subject_id_train == i]
+                y_train_v_for_subject = y_train_v[subject_id_train == i]
+                y_train_a_for_subject = y_train_a[subject_id_train == i]
+                
+                x_test_for_subject = x_test[subject_id_test == i]
+                y_test_v_for_subject = y_test_v[subject_id_test == i]
+                y_test_a_for_subject = y_test_a[subject_id_test == i]
     
-            model = create_MT_CNN(img_size, dropout_rate, number_of_inputs)      
-            
-            model.compile(loss=[keras.losses.categorical_crossentropy, keras.losses.categorical_crossentropy],
-                          optimizer=tf.keras.optimizers.Adam(learning_rate=0.001/8),
-                          metrics=['accuracy'])
-            
-            model.load_weights(model_checkpoint_path_SI_for_load)
-            
-            # Fit the model
-            x_train_for_subject = x_train[subject_id_train == i]
-            y_train_v_for_subject = y_train_v[subject_id_train == i]
-            y_train_a_for_subject = y_train_a[subject_id_train == i]
-            
-            x_test_for_subject = x_test[subject_id_test == i]
-            y_test_v_for_subject = y_test_v[subject_id_test == i]
-            y_test_a_for_subject = y_test_a[subject_id_test == i]
-
-            scores_for_subject = model.evaluate([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
-                    [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
-
-            best_loss_SI = scores_for_subject[:3]
-            
-            scores_subject_dependent_per_fold_before.append(scores_for_subject[-2:])
-
-            print('Before fine-tuning:', [round(score, 6) for score in scores_for_subject])
-            
-            
-            # AV Multi-task fine-tuning
-
-            copyfile(model_checkpoint_path_SI_for_load, model_checkpoint_path_SD)
-            callbacks = [lrate_silent(),
-                        save_model_for_test(),
-                        es()]
-            for callback in callbacks:
-              callback.best = best_loss_SI[0]   
+                scores_for_subject = model.evaluate([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
+                        [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
     
-            sample_weights = get_sample_weights([y_train_v_for_subject, y_train_a_for_subject])
-            hist_for_subject = model.fit([x_train_for_subject[:, i] for i in range(x_train_for_subject.shape[1])],
-                            [y_train_v_for_subject, y_train_a_for_subject], epochs=epochs_n, 
-                            sample_weight=sample_weights,
-                            batch_size=64, verbose=verbose,
-                            callbacks=callbacks,
-                                        # калбеки должны быть обнулены, они вроде и были?
-                            validation_data=([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
-                                              [y_test_v_for_subject, y_test_a_for_subject]))
-            
-            model.load_weights(model_checkpoint_path_SD)
+                best_loss_SI = scores_for_subject[:3]
+                
+                scores_subject_dependent_per_fold_before.append(scores_for_subject[-2:])
     
-            scores_for_subject = model.evaluate([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
-                                [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
-            
-            multi_scores_subject_dependent_per_fold.append(scores_for_subject[-2:])
-            print('After fine-tuning on Multi-Task', [round(score, 6) for score in scores_for_subject])
+                print('Before fine-tuning:', [round(score, 6) for score in scores_for_subject])
+                
+                
+                # AV Multi-task fine-tuning
     
-    
-            # For Valence
-            K.clear_session()
-            model = create_MT_CNN(img_size, dropout_rate, number_of_inputs)
-            
-            model.compile(loss=keras.losses.categorical_crossentropy, loss_weights=[1, 0],
-                          optimizer=tf.keras.optimizers.Adam(learning_rate=0.001/4),
-                          metrics=['accuracy'])
-            
-    
-            model.load_weights(model_checkpoint_path_SI_for_load)
-    
-            copyfile(model_checkpoint_path_SI_for_load, model_checkpoint_path_SD)
-            callbacks = [lrate_silent(),
-                        save_model_for_test(),
-                        es()]
-            for callback in callbacks:
-              callback.best = best_loss_SI[1]   
-    
-            sample_weights = get_sample_weights([y_train_v_for_subject])
-            hist_for_subject = model.fit([x_train_for_subject[:, i] for i in range(x_train_for_subject.shape[1])],
-                            [y_train_v_for_subject, y_train_a_for_subject], epochs=epochs_n, 
-                            sample_weight=sample_weights,
-                            batch_size=64, verbose=verbose,
-                            callbacks=callbacks,
-                                        # калбеки должны быть обнулены?
-                            validation_data=([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
-                                              [y_test_v_for_subject, y_test_a_for_subject]))
-            
-            model.load_weights(model_checkpoint_path_SD)
-    
-    
-            scores_for_subject = model.evaluate([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
-                                [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
-            
-            valence_scores_subject_dependent_per_fold.append(scores_for_subject[-2:])
-            print('After fine-tuning on VALENCE', [round(score, 6) for score in scores_for_subject])
-    
-            # Arousal
-            K.clear_session()
-            model = create_MT_CNN(img_size, dropout_rate, number_of_inputs)
-            
-            # Compile model
-            model.compile(loss=keras.losses.categorical_crossentropy, loss_weights=[0, 1],
-                          optimizer=tf.keras.optimizers.Adam(learning_rate=0.001/4),
-                          metrics=['accuracy'])
-            
-            model.load_weights(model_checkpoint_path_SI_for_load)
-    
-            copyfile(model_checkpoint_path_SI_for_load, model_checkpoint_path_SD)
-            callbacks = [lrate_silent(),
-                        save_model_for_test(),
-                        es()]
-            for callback in callbacks:
-              callback.best = best_loss_SI [2]
-            
-            sample_weights = get_sample_weights([y_train_a_for_subject])
-            hist_for_subject = model.fit([x_train_for_subject[:, i] for i in range(x_train_for_subject.shape[1])],
-                            [y_train_v_for_subject, y_train_a_for_subject], epochs=epochs_n, 
-                            sample_weight=sample_weights,
-                            batch_size=64, verbose=verbose,
-                            callbacks=callbacks,
-                            validation_data=([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
-                                              [y_test_v_for_subject, y_test_a_for_subject]))
-            
-            model.load_weights(model_checkpoint_path_SD)
-            # # сделать разные сейвы для А и для В
-            # # Почему одни и те же цифры?? ИНТЕРЕСНО РЕШИЛСЯ ЛИ ЭТОТ ВОПРОС
-    
-            scores_for_subject = model.evaluate([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
-                                [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
-            
-            arousal_scores_subject_dependent_per_fold.append(scores_for_subject[-2:])
-            print('After fine-tuning on AROUSAL', [round(score, 6) for score in scores_for_subject])
-    
-        valence_scores_subject_dependent_list.append(valence_scores_subject_dependent_per_fold)
-        arousal_scores_subject_dependent_list.append(arousal_scores_subject_dependent_per_fold)
-        multi_scores_subject_dependent_list.append(multi_scores_subject_dependent_per_fold)
-    
-        scores_subject_dependent_list_before.append(scores_subject_dependent_per_fold_before)
-    
-        with open(os.path.join(model_dir + f'{model_name}_scores_SI.pkl'), 'wb') as fl:
+                copyfile(model_checkpoint_path_SI_for_load, model_checkpoint_path_SD)
+                callbacks = [lrate_silent(),
+                            save_model_for_test(),
+                            es()]
+                for callback in callbacks:
+                  callback.best = best_loss_SI[0]   
+        
+                sample_weights = get_sample_weights([y_train_v_for_subject, y_train_a_for_subject])
+                hist_for_subject = model.fit([x_train_for_subject[:, i] for i in range(x_train_for_subject.shape[1])],
+                                [y_train_v_for_subject, y_train_a_for_subject], epochs=epochs_n, 
+                                sample_weight=sample_weights,
+                                batch_size=64, verbose=verbose,
+                                callbacks=callbacks,
+                                            # калбеки должны быть обнулены, они вроде и были?
+                                validation_data=([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
+                                                  [y_test_v_for_subject, y_test_a_for_subject]))
+                
+                model.load_weights(model_checkpoint_path_SD)
+        
+                scores_for_subject = model.evaluate([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
+                                    [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
+                
+                multi_scores_subject_dependent_per_fold.append(scores_for_subject[-2:])
+                print('After fine-tuning on Multi-Task', [round(score, 6) for score in scores_for_subject])
+        
+        
+                # For Valence
+                K.clear_session()
+                model = create_MT_CNN(img_size, dropout_rate, number_of_inputs)
+                
+                model.compile(loss=keras.losses.categorical_crossentropy, loss_weights=[1, 0],
+                              optimizer=tf.keras.optimizers.Adam(learning_rate=0.001/4),
+                              metrics=['accuracy'])
+                
+        
+                model.load_weights(model_checkpoint_path_SI_for_load)
+        
+                copyfile(model_checkpoint_path_SI_for_load, model_checkpoint_path_SD)
+                callbacks = [lrate_silent(),
+                            save_model_for_test(),
+                            es()]
+                for callback in callbacks:
+                  callback.best = best_loss_SI[1]   
+        
+                sample_weights = get_sample_weights([y_train_v_for_subject])
+                hist_for_subject = model.fit([x_train_for_subject[:, i] for i in range(x_train_for_subject.shape[1])],
+                                [y_train_v_for_subject, y_train_a_for_subject], epochs=epochs_n, 
+                                sample_weight=sample_weights,
+                                batch_size=64, verbose=verbose,
+                                callbacks=callbacks,
+                                            # калбеки должны быть обнулены?
+                                validation_data=([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
+                                                  [y_test_v_for_subject, y_test_a_for_subject]))
+                
+                model.load_weights(model_checkpoint_path_SD)
+        
+        
+                scores_for_subject = model.evaluate([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
+                                    [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
+                
+                valence_scores_subject_dependent_per_fold.append(scores_for_subject[-2:])
+                print('After fine-tuning on VALENCE', [round(score, 6) for score in scores_for_subject])
+        
+                # Arousal
+                K.clear_session()
+                model = create_MT_CNN(img_size, dropout_rate, number_of_inputs)
+                
+                # Compile model
+                model.compile(loss=keras.losses.categorical_crossentropy, loss_weights=[0, 1],
+                              optimizer=tf.keras.optimizers.Adam(learning_rate=0.001/4),
+                              metrics=['accuracy'])
+                
+                model.load_weights(model_checkpoint_path_SI_for_load)
+        
+                copyfile(model_checkpoint_path_SI_for_load, model_checkpoint_path_SD)
+                callbacks = [lrate_silent(),
+                            save_model_for_test(),
+                            es()]
+                for callback in callbacks:
+                  callback.best = best_loss_SI [2]
+                
+                sample_weights = get_sample_weights([y_train_a_for_subject])
+                hist_for_subject = model.fit([x_train_for_subject[:, i] for i in range(x_train_for_subject.shape[1])],
+                                [y_train_v_for_subject, y_train_a_for_subject], epochs=epochs_n, 
+                                sample_weight=sample_weights,
+                                batch_size=64, verbose=verbose,
+                                callbacks=callbacks,
+                                validation_data=([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
+                                                  [y_test_v_for_subject, y_test_a_for_subject]))
+                
+                model.load_weights(model_checkpoint_path_SD)
+                # # сделать разные сейвы для А и для В
+                # # Почему одни и те же цифры?? ИНТЕРЕСНО РЕШИЛСЯ ЛИ ЭТОТ ВОПРОС
+        
+                scores_for_subject = model.evaluate([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
+                                    [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
+                
+                arousal_scores_subject_dependent_per_fold.append(scores_for_subject[-2:])
+                print('After fine-tuning on AROUSAL', [round(score, 6) for score in scores_for_subject])
+        
+            valence_scores_subject_dependent_list.append(valence_scores_subject_dependent_per_fold)
+            arousal_scores_subject_dependent_list.append(arousal_scores_subject_dependent_per_fold)
+            multi_scores_subject_dependent_list.append(multi_scores_subject_dependent_per_fold)
+        
+            scores_subject_dependent_list_before.append(scores_subject_dependent_per_fold_before)
+        
+            with open(os.path.join(metrics_dir, f'{model_name}_scores_SD_before.pkl'), 'wb') as fl:
+              pickle.dump(scores_subject_dependent_list_before, fl)
+        
+            with open(os.path.join(metrics_dir, f'{model_name}_valence_scores_SD.pkl'), 'wb') as fl:
+              pickle.dump(valence_scores_subject_dependent_list, fl)
+        
+            with open(os.path.join(metrics_dir, f'{model_name}_arousal_scores_SD.pkl'), 'wb') as fl:
+              pickle.dump(arousal_scores_subject_dependent_list, fl)
+        
+            with open(os.path.join(metrics_dir, f'{model_name}_multi_scores_SD.pkl'), 'wb') as fl:
+              pickle.dump(multi_scores_subject_dependent_list, fl)       
+          
+        with open(os.path.join(metrics_dir, f'{model_name}_scores_SI.pkl'), 'wb') as fl:
           pickle.dump(scores_subject_independent_list, fl)
-    
-        with open(os.path.join(model_dir + f'{model_name}_scores_SD_before.pkl'), 'wb') as fl:
-          pickle.dump(scores_subject_dependent_list_before, fl)
-    
-        with open(os.path.join(model_dir + f'{model_name}_valence_scores_SD.pkl'), 'wb') as fl:
-          pickle.dump(valence_scores_subject_dependent_list, fl)
-    
-        with open(os.path.join(model_dir + f'{model_name}_arousal_scores_SD.pkl'), 'wb') as fl:
-          pickle.dump(arousal_scores_subject_dependent_list, fl)
-    
-        with open(os.path.join(model_dir + f'{model_name}_multi_scores_SD.pkl'), 'wb') as fl:
-          pickle.dump(multi_scores_subject_dependent_list, fl)
