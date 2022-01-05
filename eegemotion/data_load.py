@@ -7,7 +7,6 @@ import scipy.io as sio
 from tensorflow.keras.utils import to_categorical
 
 
-
 ###
 # NUM_CLASSES - это что?
 # features = "multi" or "DE" or "PSD"
@@ -18,8 +17,6 @@ from tensorflow.keras.utils import to_categorical
 
 
 # выше то что из снаружи
-
-
 
 
 # def load_data()
@@ -77,7 +74,7 @@ def load_data(dataset_dir, short_names, img_size=(8, 9, 8), number_of_inputs=1, 
         if len(prefixs) > 0:
           for prefix in prefixs[1:]:
             # удолить .dat??
-            file_path = os.path.join(dataset_dir, prefix+short_name + '.dat')
+            file_path = os.path.join(dataset_dir, prefix+short_name)
             file = sio.loadmat(file_path)
             data = np.concatenate([data, file['data']], axis=1)
             
