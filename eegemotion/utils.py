@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 from sklearn.utils import class_weight
 
@@ -43,3 +45,52 @@ def get_sample_weights(list_of_y_trains):
             sample_weights[y_ints == i] * class_weights[i]
 
     return sample_weights
+
+def print_results(scores_dict, fine_tuning):
+
+    if fine_tuning:
+        valence_avg_scores_list = []
+        valence_std_scores_list = []
+        arousal_avg_scores_list = []
+        arousal_std_scores_list = []
+
+        for scores_name, scores_path in scores_dict.items():
+
+            with open(scores_path, 'rb') as fl:
+                scores = pickle.load(fl)
+
+            a_acc_list = []
+            v_acc_list = []
+            a_std_list = []
+            v_std_list = []
+
+            for subject_scores in scores:
+
+                a_list = []
+                v_list = []
+                for valence, arousal in subject_scores: # перепутаны местами?
+                    a_list.append(arousal * 100)
+                    v_list.append(valence * 100)
+                a_acc_list.append(np.mean(a_list))
+                a_std_list += a_list
+                v_acc_list.append(np.mean(v_list))
+                v_std_list += v_list
+
+            print(f'\n{scores_name}')
+            print(f'\tArousal\n\t\tmean: {np.mean(a_acc_list):3.4f} %\n\t\tstd: {np.std(a_std_list):3.4f} %')
+            print(f'\tValence\n\t\tmean: {np.mean(v_acc_list):3.4f} %\n\t\tstd: {np.std(v_std_list):3.4f} %')
+            valence_avg_scores_list.append(np.mean(v_acc_list))
+            valence_std_scores_list.append(np.std(v_std_list))
+            arousal_avg_scores_list.append(np.mean(a_acc_list))
+            arousal_std_scores_list.append(np.std(a_std_list))
+    else:
+        for scores_name, scores_path in scores_dict.items():
+            with open(scores_path, 'rb') as fl:
+                scores = pickle.load(fl)
+    
+            valence_score = np.mean([score[-2] for score in scores]) * 100
+            arousal_score = np.mean([score[-1] for score in scores]) * 100
+            
+            print(f'\n{scores_name}')
+            print(f'\tArousal mean: {arousal_score:3.4f} %')
+            print(f'\tValence mean: {valence_score:3.4f} %')      

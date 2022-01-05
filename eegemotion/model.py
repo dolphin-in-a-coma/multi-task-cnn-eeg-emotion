@@ -37,8 +37,7 @@ def create_MT_CNN(img_size = (8, 9, 8), dropout_rate = 0.2, number_of_inputs = 1
     if number_of_inputs == 1:
         x = base_network(inputs[0])
     else:
-        raise NotImplementedError()
-        # x = Average()([base_network(input_) for input_ in inputs])
+        x = Average()([base_network(input_) for input_ in inputs])
     
     x = Flatten(name='flat')(x)
 

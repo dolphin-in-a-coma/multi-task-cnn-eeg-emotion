@@ -20,6 +20,15 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
           model_name='MT_CNN', img_size=(8, 9, 8), lr_decay_factor=0.5, 
           lr_decay_patience=5, epochs_n=200, seed=7, verbose=0, task='multi',
           fine_tuning=True):
+    
+    if task == 'multi':
+        loss_weights = [1, 1]
+    elif task == 'valence':
+        loss_weights = [1, 0]
+    elif task == 'arousal':
+        loss_weights = [0, 1]
+    else:
+        raise NotImplementedError
 
     model_checkpoint_path_SD = f'{model_dir}/{model_name}-for-test.hdf5'
 
@@ -63,7 +72,7 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
         model = create_MT_CNN(img_size, dropout_rate, number_of_inputs)
         
         model.compile(loss=[keras.losses.categorical_crossentropy, keras.losses.categorical_crossentropy],
-                     # нужно добавить лосс вейт
+                    loss_weights=loss_weights,
                     optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
                     metrics=['accuracy'])
         
