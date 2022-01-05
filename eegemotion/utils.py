@@ -6,6 +6,7 @@ from tensorflow.python.platform import tf_logging as logging
 
 
 class ReduceLRBacktrack(ReduceLROnPlateau):
+
     def __init__(self, best_path, *args, **kwargs):
         super(ReduceLRBacktrack, self).__init__(*args, **kwargs)
         self.best_path = best_path
@@ -13,7 +14,6 @@ class ReduceLRBacktrack(ReduceLROnPlateau):
     def on_epoch_end(self, epoch, logs=None):
         current = logs.get(self.monitor)
 
-        #print(log.keys())
         if current is None:
             logging.warning('Reduce LR on plateau conditioned on metric `%s` '
                             'which is not available. Available metrics are: %s',
