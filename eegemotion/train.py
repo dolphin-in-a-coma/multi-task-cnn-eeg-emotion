@@ -13,8 +13,6 @@ from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint, Early
 from eegemotion.utils import ReduceLRBacktrack, get_sample_weights
 from eegemotion.model import create_MT_CNN
 
-# TODO добавить веса для лосов
-
 def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id, 
           subject_n=32, dropout_rate=.2, number_of_inputs=1, model_dir='.', metrics_dir='.',
           model_name='MT_CNN', img_size=(8, 9, 8), lr_decay_factor=0.5, 
@@ -32,7 +30,6 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
 
     model_checkpoint_path_SD = f'{model_dir}/{model_name}-for-test.hdf5'
 
-    # нужно ли использовать - хз
     lrate_silent = lambda: ReduceLRBacktrack(best_path=model_checkpoint_path_SD, 
                             monitor='val_loss', patience=lr_decay_patience, 
                             factor=lr_decay_factor, verbose=verbose)
@@ -59,8 +56,11 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
     scores_subject_independent_list = []
 
     np.random.seed(seed)
-    kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
+    n_splits = 5
+    kfold = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
     for fold, (train, test) in enumerate(kfold.split(x_all_subject, y_a_all_subject.argmax(1))):
+        
+        print(f'\n\nFold #{fold+1}/n_splits\n\n')
         # if fold > 1:
         #    continue
         K.clear_session()
@@ -68,7 +68,7 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
         model_checkpoint_path_SI_unique = f'{model_dir}/{model_name}-weight_AV-fold{fold+1:02d}' +\
         '-epoch{epoch:02d}-loss{val_loss:.2f}-A_accuracy{val_out_a_accuracy:.4f}-V_accuracy{val_out_v_accuracy:.4f}.hdf5'
         model_checkpoint_path_SI_for_load = f'{model_dir}/{model_name}-weight_AV-fold{fold+1:02d}.hdf5'
-    
+
         model = create_MT_CNN(img_size, dropout_rate, number_of_inputs)
         
         model.compile(loss=[keras.losses.categorical_crossentropy, keras.losses.categorical_crossentropy],
@@ -119,6 +119,8 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
             valence_scores_subject_dependent_per_fold = []
             arousal_scores_subject_dependent_per_fold = []
             scores_subject_dependent_per_fold_before = []
+            
+            metrics = ['loss', 'valence loss', 'arousal loss', 'valence acc', 'arousal acc']
                 
             for i in range(subject_n):
                 short_name = f'{i+1:02}'
@@ -149,11 +151,10 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
                 
                 scores_subject_dependent_per_fold_before.append(scores_for_subject[-2:])
     
-                print('Before fine-tuning:', [round(score, 6) for score in scores_for_subject])
+                print('Before fine-tuning:', list(zip(metrics, [round(score, 6) for score in scores_for_subject])))
                 
                 
                 # AV Multi-task fine-tuning
-    
                 copyfile(model_checkpoint_path_SI_for_load, model_checkpoint_path_SD)
                 callbacks = [lrate_silent(),
                             save_model_for_test(),
@@ -221,7 +222,6 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
                 K.clear_session()
                 model = create_MT_CNN(img_size, dropout_rate, number_of_inputs)
                 
-                # Compile model
                 model.compile(loss=keras.losses.categorical_crossentropy, loss_weights=[0, 1],
                               optimizer=tf.keras.optimizers.Adam(learning_rate=0.001/4),
                               metrics=['accuracy'])
@@ -245,8 +245,6 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
                                                   [y_test_v_for_subject, y_test_a_for_subject]))
                 
                 model.load_weights(model_checkpoint_path_SD)
-                # # сделать разные сейвы для А и для В
-                # # Почему одни и те же цифры?? ИНТЕРЕСНО РЕШИЛСЯ ЛИ ЭТОТ ВОПРОС
         
                 scores_for_subject = model.evaluate([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
                                     [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)

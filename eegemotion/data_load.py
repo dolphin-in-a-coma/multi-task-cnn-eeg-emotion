@@ -6,9 +6,6 @@ import scipy.io as sio
 
 from tensorflow.keras.utils import to_categorical
 
-# features = "multi" or "DE" or "PSD"
-#img_rows, img_cols, num_chan = 8, 9, 8
-
 def load_data(dataset_dir, subject_n=32, img_size=(8, 9, 8), number_of_inputs=1,
               features_type='multi', num_classes=2, frames_per_subject=4800, seed=7):
     
@@ -19,17 +16,11 @@ def load_data(dataset_dir, subject_n=32, img_size=(8, 9, 8), number_of_inputs=1,
     if features_type == 'DE': prefixs = prefixs[:1]
     elif features_type == 'PSD': prefixs = prefixs[1:]
     elif features_type != 'multi': raise NotImplementedError()
-    # all_acc = [] # используешься ли ты где-нибудь?
     
     samples_number_per_subject = int(frames_per_subject / number_of_inputs) # tested only for [1...6] range
     samples_numbers_list = list(range(samples_number_per_subject))
     
-    # вроде нахуй не нужно 
-    # K.clear_session()
-    
     random.seed(seed)
-    
-    # инициализатион
     
     y_a_list = []
     y_v_list = []
@@ -42,7 +33,7 @@ def load_data(dataset_dir, subject_n=32, img_size=(8, 9, 8), number_of_inputs=1,
     for i in range(subject_n):
         short_name = f'{i+1:02}'
         random.shuffle(samples_numbers_list)
-        # удолить # print("\nprocessing: ", short_name[i], "......")
+        print("\nprocessing: ", short_name, "......")
         file_path = os.path.join(dataset_dir, prefixs[0]+short_name)
         file = sio.loadmat(file_path)
         data = file['data']
@@ -66,9 +57,6 @@ def load_data(dataset_dir, subject_n=32, img_size=(8, 9, 8), number_of_inputs=1,
         for j in range(int(len(y_a)//number_of_inputs)):
             one_y_v = np.vstack((one_y_v, y_v[j*number_of_inputs]))
             one_y_a = np.vstack((one_y_a, y_a[j*number_of_inputs]))
-
-        # хз что ето, вроде нигде не примелькается, удолить?
-        # cvscores = []
     
         one_falx = one_falx[samples_numbers_list]
         one_y_a = one_y_a[samples_numbers_list]
