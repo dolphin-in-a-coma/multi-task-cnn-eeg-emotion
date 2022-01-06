@@ -60,7 +60,7 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
     kfold = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
     for fold, (train, test) in enumerate(kfold.split(x_all_subject, y_a_all_subject.argmax(1))):
         
-        print(f'\n\nFold #{fold+1}/n_splits\n\n')
+        print(f'\n\nFold {fold+1}/{n_splits}\n\n')
         # if fold > 1:
         #    continue
         K.clear_session()
@@ -168,7 +168,6 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
                                 sample_weight=sample_weights,
                                 batch_size=64, verbose=verbose,
                                 callbacks=callbacks,
-                                            # калбеки должны быть обнулены, они вроде и были?
                                 validation_data=([x_test_for_subject[:, i] for i in range(x_test_for_subject.shape[1])],
                                                   [y_test_v_for_subject, y_test_a_for_subject]))
                 
@@ -178,7 +177,7 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
                                     [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
                 
                 multi_scores_subject_dependent_per_fold.append(scores_for_subject[-2:])
-                print('After fine-tuning on Multi-Task', [round(score, 6) for score in scores_for_subject])
+                print('After fine-tuning on Multi-Task', list(zip(metrics, [round(score, 6) for score in scores_for_subject])))
         
         
                 # For Valence
@@ -216,7 +215,7 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
                                     [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
                 
                 valence_scores_subject_dependent_per_fold.append(scores_for_subject[-2:])
-                print('After fine-tuning on VALENCE', [round(score, 6) for score in scores_for_subject])
+                print('After fine-tuning on VALENCE', list(zip(metrics, [round(score, 6) for score in scores_for_subject])))
         
                 # Arousal
                 K.clear_session()
@@ -250,7 +249,7 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
                                     [y_test_v_for_subject, y_test_a_for_subject], verbose=verbose)
                 
                 arousal_scores_subject_dependent_per_fold.append(scores_for_subject[-2:])
-                print('After fine-tuning on AROUSAL', [round(score, 6) for score in scores_for_subject])
+                print('After fine-tuning on AROUSAL', list(zip(metrics, [round(score, 6) for score in scores_for_subject])))
         
             valence_scores_subject_dependent_list.append(valence_scores_subject_dependent_per_fold)
             arousal_scores_subject_dependent_list.append(arousal_scores_subject_dependent_per_fold)
