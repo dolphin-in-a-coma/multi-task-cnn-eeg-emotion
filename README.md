@@ -42,6 +42,6 @@ To create PSD files, it's needed to run modified [DEAP_1D.py](https://github.com
 
 To run the training script it's needed to collect all the resulting PSD_{subject_number}.mat (32 files for the DEAP dataset) and 32 DE_{subject_number}.mat (the same number) files in the dataset directory and specify path to it as a parameter. 
 
-## Training and testing 
+## Training and evalution
 
 All the training steps are demonstrated in [Colab Notebook](https://colab.research.google.com/github/dolphin-in-a-coma/multi-task-cnn-eeg-emotion/blob/main/Training.ipynb)
