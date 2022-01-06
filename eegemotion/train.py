@@ -37,10 +37,9 @@ def train(x_all_subject, y_a_all_subject, y_v_all_subject, all_subject_id,
     lrate = lambda model_checkpoint_path: ReduceLROnPlateau(best_path=model_checkpoint_path,
                                             monitor="val_loss", patience=5,
                                             factor=0.5, verbose=1)
-    
-    # исправить потом!!!!
+
     es = lambda: EarlyStopping(monitor='val_loss', mode='min',
-                               verbose=1, patience=1)
+                               verbose=1, patience=16)
 
     save_model_for_test = lambda: ModelCheckpoint(
                           model_checkpoint_path_SD,
