@@ -30,15 +30,17 @@ Nevertheless, our model cannot be used for subject-independent emotion recogniti
 
 
 ## Data preprocessing
-The script is working with *.mat files which were processed in the specific way from raw DEAP dataset. My data processing method is mostly based on the method which was decribed in [this repository](https://github.com/shark-in-a-coma/4D-CRNN/tree/master/DEAP). There are two *.py scripts which is needed to be run to transfer DEAP data (Tab _Preprocessed data in Matlab format (2.9GB)_ on the [DEAP website](https://www.eecs.qmul.ac.uk/mmv/datasets/deap/download.html)) into approriate format. 
+The script is working with *.mat files that have been processed in a certain way from raw DEAP dataset. My data processing method is mainly based on the method described in [this repository](https://github.com/shark-in-a-coma/4D-CRNN/tree/master/DEAP). There are two *.py scripts that need to be run to convert DEAP data (Tab _Preprocessed data in Matlab format (2.9GB)_ on the [DEAP website](https://www.eecs.qmul.ac.uk/mmv/datasets/deap/download.html)) into appropriate format. 
 
-**Generating DE (diferential entopy) files**
+**Generating DE (differential entropy) files**
 
-You need to run DEAP_1D.py script at first from the aboce mentioned repository, then DEAP_1D_3D.py.
+To generate files with DE features, it's first needed to run DEAP_1D.py script from the above-mentioned repository, then DEAP_1D_3D.py. Specify the path to the directory with the files an the output path in the scripts.
 
 **Generating PSD (power spectral density) files**
 
-To make the training script run you need to collect all the resulted PSD_{i}.mat (32 files for DEAP dataset) and 32 DE_{i}.mat (the same number) files in the dataset dir and specify its path as a parameter. 
+To create PSD files, it's needed to run modified [DEAP_1D.py](https://github.com/shark-in-a-coma/4D-CRNN/blob/psd_generation/DEAP/DEAP_1D.py), and the same DEAP_1D_3D.py after.
+
+To run the training script it's needed to collect all the resulting PSD_{subject_number}.mat (32 files for the DEAP dataset) and 32 DE_{subject_number}.mat (the same number) files in the dataset directory and specify path to it as a parameter. 
 
 ## Training and testing 
 
