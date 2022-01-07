@@ -10,7 +10,7 @@ metrics_dir = '.'  # path to the folder were all metrics will be stored
 img_size = img_rows, img_cols, num_chan = 8, 9, 8  # matrix shape of input data
 number_of_inputs = 1  # how many frames is taken into account during one pass
 
-features_type = 'multi'  # 'PSD', 'DE' or 'multi' be carefull with num_chanel
+features_type = 'multi'  # 'PSD', 'DE' or 'multi' be carefull with num_chan
 num_classes = 2  # number of classes of input data
 frames_per_subject = 4800  # how many frames per one subject
 seed = 7  # random seed
