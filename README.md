@@ -1,4 +1,4 @@
-**Status:**: Unfinished (code is provided as-is, to be run it needs some manipulations, can be updated if I find time)
+**Status:**: Archived (code is provided as-is, no updates expected)
 
 # MT-CNN for EEG Emotion Recognition
 Code for the paper "Multi-Task CNN Model for Emotion Recognition from EEG Brain Maps" presented on the 4th IEEE International Conference on Bio-engineering for Smart Technologies BioSmart 2021. Keras implentation.
