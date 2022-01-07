@@ -6,7 +6,7 @@ Code for the paper "Multi-Task CNN Model for Emotion Recognition from EEG Brain 
 It describes a simple model which outperforms previous SOTA approaches in terms of accuracy on the DEAP dataset.
 
 [Slides](https://github.com/dolphin-in-a-coma/multi-task-cnn-eeg-emotion/blob/main/MT_CNN.pdf) 
-[Video]
+[Video](https://www.youtube.com/watch?v=86spmxqTg3k&ab_channel=EvgeniiRudakov)
 [Colab](https://colab.research.google.com/github/dolphin-in-a-coma/multi-task-cnn-eeg-emotion/blob/main/Training.ipynb)
 Paper (will be uploaded on the IEEE Xplore in next few months) 
 
