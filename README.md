@@ -8,7 +8,7 @@ It describes a simple model which outperforms previous SOTA approaches in terms 
 [Slides](https://cntr.click/a1m7LNa) 
 [Video](https://cntr.click/rJh8925)
 [Colab](https://cntr.click/63kpB43)
-Paper (will be uploaded on the IEEE Xplore in next few months) 
+[Paper](https://cntr.click/1SVGkjr) 
 
 ![Model Structure](graphics/model_structure_hor_tnr.png "Detail of layers composing the Multi-task CNN with input dimension, tensor dimension after each block and output dimension before classification")
 ## Pros and Cons
