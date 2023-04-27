@@ -8,7 +8,7 @@ It describes a simple model which outperforms previous SOTA approaches in terms 
 [Slides](https://github.com/dolphin-in-a-coma/multi-task-cnn-eeg-emotion/blob/main/MT_CNN.pdf) 
 [Video](https://www.youtube.com/watch?v=86spmxqTg3k&ab_channel=EvgeniiRudakov)
 [Colab](https://colab.research.google.com/github/dolphin-in-a-coma/multi-task-cnn-eeg-emotion/blob/main/Training.ipynb)
-[Paper](https://cntr.click/1SVGkjr) 
+[Paper](https://www.researchgate.net/profile/Samer-Al-Kork/publication/356727064_Multi-Task_CNN_model_for_emotion_recognition_from_EEG_Brain_maps/links/61f8d7f81e98d168d7e2a94f/Multi-Task-CNN-model-for-emotion-recognition-from-EEG-Brain-maps.pdf) 
 
 ![Model Structure](graphics/model_structure_hor_tnr.png "Detail of layers composing the Multi-task CNN with input dimension, tensor dimension after each block and output dimension before classification")
 ## Pros and Cons
